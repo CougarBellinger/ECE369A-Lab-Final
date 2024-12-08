@@ -25,6 +25,8 @@ module ExecutionMemory(Clk, Reset, pc_in, Zero_in, pc_in_2, ALUResult_in, read_d
 
                     instruction_in, instruction_out,
 
+                    ALUSrc_in, ALUSrc_out,
+
                      AndValue_in, MemtoReg_in, RegWrite_in, RegWriteSrc_in, // writeback control inputs
                      AndValue_out, MemtoReg_out, RegWrite_out, RegWriteSrc_out,// writeback control outputs
 
@@ -55,56 +57,64 @@ module ExecutionMemory(Clk, Reset, pc_in, Zero_in, pc_in_2, ALUResult_in, read_d
     input Branch_in, MemRead_in, MemWrite_in, Unconditional_in, BranchNE_in, MemWriteSrc_in;
     output reg Branch_out, MemRead_out, MemWrite_out, Unconditional_out, BranchNE_out, MemWriteSrc_out;
 
+    input [1:0] ALUSrc_in;
+    output [1:0] ALUSrc_out;
+
     always @ (posedge Clk) begin
         if(Reset) begin
-        pc_out <= 0;
-        Zero_out <= 0;
-        pc_out_2 <= 0;
-        ALUResult_out <= 0;
-        read_data_2_out <= 0;
-        rs_out <= 0;
-        rt_out <= 0;
-        WriteRegister_out <= 0;
-        instruction_out <= 0;
+            pc_out <= 0;
+            Zero_out <= 0;
+            pc_out_2 <= 0;
+            ALUResult_out <= 0;
+            read_data_2_out <= 0;
+            rs_out <= 0;
+            rt_out <= 0;
+            WriteRegister_out <= 0;
+            instruction_out <= 0;
 
-        //writeback control signals
-        AndValue_out <= 0;
-        MemtoReg_out <= 0;
-        RegWrite_out <= 0;
-        RegWriteSrc_out <= 0;
+            //writeback control signals
+            AndValue_out <= 0;
+            MemtoReg_out <= 0;
+            RegWrite_out <= 0;
+            RegWriteSrc_out <= 0;
 
-        //memory control signals
-        Branch_out <= 0;
-        MemRead_out <= 0;
-        MemWrite_out <= 0;
-        Unconditional_out <= 0;
-        BranchNE_out <= 0;
-        MemWriteSrc_out <= 0;
+            //memory control signals
+            Branch_out <= 0;
+            MemRead_out <= 0;
+            MemWrite_out <= 0;
+            Unconditional_out <= 0;
+            BranchNE_out <= 0;
+            MemWriteSrc_out <= 0;
+
+            ALUSrc_out <= 0;
         end
+
         //datapath information
         else begin
-        pc_out <= pc_in;
-        Zero_out <= Zero_in;
-        pc_out_2 <= pc_in_2;
-        ALUResult_out <= ALUResult_in;
-        rs_out <= rs_in;
-        rt_out <= rt_in;
-        read_data_2_out <= read_data_2_in;
-        WriteRegister_out <= WriteRegister_in;
-        instruction_out <= instruction_in;
+            pc_out <= pc_in;
+            Zero_out <= Zero_in;
+            pc_out_2 <= pc_in_2;
+            ALUResult_out <= ALUResult_in;
+            rs_out <= rs_in;
+            rt_out <= rt_in;
+            read_data_2_out <= read_data_2_in;
+            WriteRegister_out <= WriteRegister_in;
+            instruction_out <= instruction_in;
 
-        //writeback control signals
-        AndValue_out <= AndValue_in;
-        MemtoReg_out <= MemtoReg_in;
-        RegWrite_out <= RegWrite_in;
-        RegWriteSrc_out <= RegWriteSrc_in;
-        //memory control signals
-        Branch_out <= Branch_in;
-        MemRead_out <= MemRead_in;
-        MemWrite_out <= MemWrite_in;
-        Unconditional_out <= Unconditional_in;
-        BranchNE_out <= BranchNE_in;
-        MemWriteSrc_out <= MemWriteSrc_in;
+            //writeback control signals
+            AndValue_out <= AndValue_in;
+            MemtoReg_out <= MemtoReg_in;
+            RegWrite_out <= RegWrite_in;
+            RegWriteSrc_out <= RegWriteSrc_in;
+            //memory control signals
+            Branch_out <= Branch_in;
+            MemRead_out <= MemRead_in;
+            MemWrite_out <= MemWrite_in;
+            Unconditional_out <= Unconditional_in;
+            BranchNE_out <= BranchNE_in;
+            MemWriteSrc_out <= MemWriteSrc_in;
+
+            ALUSrc_out <= ALUSrc_in;
         end
     end
 

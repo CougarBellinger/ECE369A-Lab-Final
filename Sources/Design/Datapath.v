@@ -105,6 +105,10 @@ module Datapath (
     output wire ID_EXWrite;
     wire PCWrite, Nop;
 
+    //Forwarding Wires
+    wire [31:0] MEM_ALUresult;
+    wire [1:0] 
+
 
     // ==================================================================================================================================================================================================
     // IF
@@ -366,11 +370,31 @@ module Datapath (
     // EX
     // ==================================================================================================================================================================================================
 
+    ForwardingUnit Forwarding(
+        .Clk (Clk),
+        .Reset (Reset),
+
+        .ID_EX_rs (EX_rt), .ID_EX_rt (EX_rd),
+
+        .EX_MEM_rt (MEM_rt), .EX_MEM_rd (MEM_rd),
+        .MEM_WB_rt (WB_rt), .MEM_WB_rd (WB_rd),
+
+        .EX_MEM_ALUSrc (),
+        .MEM_WB_ALUSrc (),
+
+        .EX_MEM_MemRead (MEM_MemRead),
+        .MEM_WB_MemRead (WB_MemRead),
+
+        .EX_MEM_RegWrite (MEM_RegWrite),
+        .MEM_WB_RegWrite (WB_RegWrite),
+
+        .Forward_rs_EX (Forward_ALU_A_Sel),
+        .Forward_rt_EX (Forward_ALU_B_Sel)
+    );
     
     // ALU ------------------------------------------------
     //Mux for ALU input A
-     wire [31:0] muxALUASrc;
-    
+    wire [31:0] muxALUASrc;
     Mux32Bit2To1 Mux_ALUASrc(
         .sel (EX_ALUASrc),
 
@@ -379,6 +403,7 @@ module Datapath (
 
         .out(muxALUASrc)
     );
+
     //Mux for ALU input B
      wire [31:0] muxAluSrc;
     Mux32Bit4To1 Mux_AluSrc(
@@ -392,22 +417,45 @@ module Datapath (
         .out (muxAluSrc)
     );
 
-    // ALU
-     wire [63:0] ALUresult;
-     wire zero;
+    wire [31:0] ALU_A;
+    Mux32Bit4To1 Mux_Forward_ALU_A(
+        .sel (Forward_ALU_A_Sel),
+
+        .inA (muxALUASrc),
+        .inB (0),
+        .inC (MEM_ALUresult),
+        .inD (WB_WriteData),
+
+        .out (ALU_A)
+    );
+
+    wire [31:0] ALU_B;
+    Mux32Bit4To1 Mux_Forward_ALU_B(
+        .sel (Forward_ALU_B_Sel),
+
+        .inA (EX_readData2),
+        .inB (0),
+        .inC (MEM_ALUresult),
+        .inD (WB_WriteData),
+
+        .out (ALU_B)
+    );
+
+    
+    wire [63:0] ALUresult;
+    wire zero;
     ALU32Bit ALU(
         .ALUControl (EX_ALUop),
 
         //inputs
-        .A (muxALUASrc),
-        .B (muxAluSrc),
+        .A (ALU_A),
+        .B (ALU_B),
 
         //output
         .ALUResult (ALUresult),
         .Zero (zero)
     );
 
-    // WRITE REGISTER ------------------------------------------
     wire [4:0] muxRegDst;
     Mux5Bit4To1 Mux_RegDst(
         .sel (EX_RegDst), //RegDst Signal
@@ -424,7 +472,7 @@ module Datapath (
     // EX
 
     //datapath wires
-    wire [31:0] MEM_PC, MEM_ALUresult, MEM_readData2;
+    wire [31:0] MEM_PC, MEM_readData2;
     wire [4:0] MEM_WriteReg, MEM_rs;
     wire MEM_Zero;
 
@@ -497,9 +545,9 @@ module Datapath (
     // MEM
 
     wire [31:0] WB_AndValue, WB_PCout, WB_ALUResult;
-     wire [31:0] WB_MemData;
-     wire [1:0] WB_MemToReg;
-     wire WB_RegWriteSrc;
+    wire [31:0] WB_MemData;
+    wire [1:0] WB_MemToReg;
+    wire WB_RegWriteSrc;
 
     MemoryWriteback MEMtoWB(
         .Clk (Clk),
