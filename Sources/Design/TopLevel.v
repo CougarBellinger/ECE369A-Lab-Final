@@ -41,7 +41,7 @@ module TopLevel(Clk, Reset, en_out, out7);
       
       //defparam Clk100.DivVal = 10000;
     
-    TopLevelHazard cpu(
+    Datapath cpu(
         .Clk(ClkOut), 
         .Reset(Reset),
 

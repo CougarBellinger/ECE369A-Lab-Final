@@ -20,7 +20,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module DecodeExecute(Clk, Reset, flush, ID_EXWrite, read_data_1_in, read_data_2_in, sa_in, imm_in, rt_in, rd_in, target_in, pc_in, pcJump_in,// inputs
+module DecodeExecute(Clk, Reset, flush, ID_EXWrite, read_data_1_in, read_data_2_in, sa_in, imm_in, rt_in, rd_in, target_in, pc_in, pcJump_in, //inputs
+
                      ALUSrc_in, ALUASrc_in, ALUop_in, RegJump_in, RegDst_in, // execution control inputs
                      branch_in, MemRead_in, MemWrite_in, Unconditional_in, BranchNE_in, MemWriteSrc_in,  // memory control inputs
                      MemToReg_in, RegWrite_in, AndValue_in, RegWriteSrc_in, // write back control inputs

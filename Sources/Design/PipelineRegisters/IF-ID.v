@@ -33,7 +33,7 @@ module FetchDecode(
     output reg [31:0] pc_out
 );         
         
-    always@(posedge Clk) begin
+    always @ (posedge Clk) begin
 
         if(Reset || flush) begin
             instruction_out <= 0;
