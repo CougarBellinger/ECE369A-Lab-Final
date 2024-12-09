@@ -70,8 +70,9 @@ module DataMemory(Address, WriteData, Clk, MemWrite, MemRead, ReadData);
     end
 
     initial begin
-       //$readmemh("data_memory.mem", Memory);
-       $readmemh("private_data_memory_lab6.mem", Memory);
+        $readmemh("comp_data_memory.mem", Memory);
+        //$readmemh("data_memory.mem", Memory);
+        //$readmemh("private_data_memory_lab6.mem", Memory);
     end
 
 endmodule

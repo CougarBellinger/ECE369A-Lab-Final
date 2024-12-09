@@ -45,8 +45,9 @@ module InstructionMemory(Address, Instruction);
     reg [31:0] Memory [0:2048];     // Memory Registers
 
     initial begin
+        $readmemh("comp_instruction_memory.mem", Memory);
         //$readmemh("instruction_memory.mem", Memory);
-        $readmemh("private_instruction_memory_lab6.mem", Memory);
+        //$readmemh("private_instruction_memory_lab6.mem", Memory);
     end
 
     assign Instruction = Memory[Address >> 2];

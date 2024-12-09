@@ -19,7 +19,7 @@ main:
     addi    $s2, $zero, -4 # 0xFFFC
     addi    $s4, $zero, -4 # 0xFFFC
 
-
+	
     # read after lw on rs Case 1
     lw      $s2, 4($a0)   # $s2 = 8 # 0x8
     add     $s3, $s2, $s1 # s3 = 4 # 0x4

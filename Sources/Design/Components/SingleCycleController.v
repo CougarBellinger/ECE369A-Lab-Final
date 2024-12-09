@@ -17,7 +17,7 @@ MemWrite, Unconditional, BranchNE, MemWriteSrc, MemtoReg, RegWrite, RegWriteSrc)
     //assign special = instruction_in [5:0];
     //assign regimm = instruction_in [20:16]; //used for bgez and bltz
     
-    always@(instruction_in, nop)
+    always @ (instruction_in, nop)
      begin
     
         AndValue <= 0;

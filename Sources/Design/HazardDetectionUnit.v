@@ -4,20 +4,21 @@ module HazardDetectionUnit (
     input Clk,
     input Reset,
 
-    input [4:0] IF_ID_rs, IF_ID_rt,
-    input IF_ID_Branch,
+    input [31:0] ID_Instruction,
 
-    input [4:0] ID_EX_rt, ID_EX_rd,
-    input [4:0] EX_MEM_rt, EX_MEM_rd,
-    input [4:0] MEM_WB_rt, MEM_WB_rd,
+    input [4:0] ID_rs, ID_rt,
 
-    input ID_EX_MemRead,
-    input EX_MEM_MemRead,
-    input MEM_WB_MemRead,
+    input [4:0] EX_rt, EX_rd,
+    input [4:0] MEM_rt, MEM_rd,
+    input [4:0] WB_rt, WB_rd,
 
-    input ID_EX_RegWrite,
-    input EX_MEM_RegWrite,
-    input MEM_WB_RegWrite,
+    input EX_MemRead,
+    input MEM_MemRead,
+    input WB_MemRead,
+
+    input EX_RegWrite,
+    input MEM_RegWrite,
+    input WB_RegWrite,
 
     output reg PCWrite,
     output reg IF_ID_Stall,
@@ -28,48 +29,60 @@ module HazardDetectionUnit (
 reg stall;
 reg exit;
 
-reg ID_EX_rt_match;
-reg EX_MEM_rt_match;
-reg MEM_WB_rt_match;
+reg ID_Branch;
 
-reg ID_EX_rd_match;
-reg EX_MEM_rd_match;
-reg MEM_WB_rd_match;
+reg EX_rt_match;
+reg MEM_rt_match;
+reg WB_rt_match;
+
+reg EX_rd_match;
+reg MEM_rd_match;
+reg WB_rd_match;
 
 reg ID_EX_trigger; 
 reg EX_MEM_trigger;
 reg MEM_WB_trigger;
 
-reg ID_EX_dependant;
-reg EX_MEM_dependant;
-reg MEM_WB_dependant;
+reg EX_dependant;
+reg MEM_dependant;
+reg WB_dependant;
 
 always @ (*) begin
 
     if (Reset) begin
         stall <= 0;
         exit <= 0;
+        ID_Branch <= 0;
     end
 
     else begin
 
-        //1 if [stage]_rd = IF_ID_rs or IF_ID_rt
-        ID_EX_rd_match  = ((ID_EX_rd == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((ID_EX_rd == IF_ID_rt) & (IF_ID_rt != 5'd0));
-        EX_MEM_rd_match = ((EX_MEM_rd == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((EX_MEM_rd == IF_ID_rt) & (IF_ID_rt != 5'd0));
-        MEM_WB_rd_match = ((MEM_WB_rd == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((MEM_WB_rd == IF_ID_rt) & (IF_ID_rt != 5'd0));
+        case(ID_Instruction[31:26])
+            6'b000001:  ID_Branch <= 1;
+            6'b000110:  ID_Branch <= 1;
+            6'b000111:  ID_Branch <= 1;
+            6'b000100:  ID_Branch <= 1;
+            6'b000101:  ID_Branch <= 1;
+            default:    ID_Branch <= 0;
+        endcase
 
-        //1 if [stage]_rt = IF_ID_rs or IF_ID_rt
-        ID_EX_rt_match  = ((ID_EX_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((ID_EX_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
-        EX_MEM_rt_match = ((EX_MEM_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((EX_MEM_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
-        MEM_WB_rt_match = ((MEM_WB_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((MEM_WB_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
+        //1 if [stage]_rd = ID_rs or ID_rt
+        EX_rd_match  = ((EX_rd == ID_rs) & (ID_rs != 5'd0)) | ((EX_rd == ID_rt) & (ID_rt != 5'd0));
+        MEM_rd_match = ((MEM_rd == ID_rs) & (ID_rs != 5'd0)) | ((MEM_rd == ID_rt) & (ID_rt != 5'd0));
+        WB_rd_match  = ((WB_rd == ID_rs) & (ID_rs != 5'd0)) | ((WB_rd == ID_rt) & (ID_rt != 5'd0));
+
+        //1 if [stage]_rt = ID_rs or ID_rt
+        EX_rt_match  = ((EX_rt == ID_rs) & (ID_rs != 5'd0)) | ((EX_rt == ID_rt) & (ID_rt != 5'd0));
+        MEM_rt_match = ((MEM_rt == ID_rs) & (ID_rs != 5'd0)) | ((MEM_rt == ID_rt) & (ID_rt != 5'd0));
+        WB_rt_match  = ((WB_rt == ID_rs) & (ID_rs != 5'd0)) | ((WB_rt == ID_rt) & (ID_rt != 5'd0));
 
         //1 if IF_ID is dependant on respective stage
-        ID_EX_dependant  = (ID_EX_MemRead & ID_EX_rt_match) | (ID_EX_rd_match & IF_ID_Branch);
-        EX_MEM_dependant = (EX_MEM_MemRead & EX_MEM_rt_match) | (EX_MEM_rd_match & IF_ID_Branch);
-        MEM_WB_dependant = (MEM_WB_MemRead & MEM_WB_rt_match) | (MEM_WB_rd_match & IF_ID_Branch);
+        EX_dependant  = (EX_MemRead | ID_Branch) & (EX_rt_match | EX_rd_match);
+        MEM_dependant = (MEM_MemRead | ID_Branch) & (MEM_rt_match | MEM_rd_match);
+        WB_dependant  = (WB_MemRead | ID_Branch) & (WB_rt_match | WB_rd_match);
 
         //1 if dependency exists
-        stall = ID_EX_dependant | EX_MEM_dependant | MEM_WB_dependant;
+        stall = EX_dependant | MEM_dependant | WB_dependant;
 
     end
     

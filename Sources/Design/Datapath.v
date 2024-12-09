@@ -107,8 +107,11 @@ module Datapath (
 
     //Forwarding Wires
     wire [31:0] MEM_ALUresult;
+
+    wire [1:0] EX_ALUSrc;
     wire [1:0] MEM_ALUSrc;
     wire [1:0] WB_ALUSrc;
+
     wire [4:0] EX_rs;
 
     
@@ -217,6 +220,31 @@ module Datapath (
     assign addJump = ID_PC + shiftImmediate;
 
     // Hazard detection for stall logic
+    HazardDetectionUnit HDU(
+        .Clk (Clk),
+        .Reset (Reset),
+
+        .ID_rs (ID_rs), .ID_rt (ID_rt),
+        .ID_Instruction (ID_Instruction),
+
+        .EX_rt (EX_rt),   
+        .MEM_rt (MEM_rt), 
+        .WB_rt (WB_rt),
+
+        .EX_rd (EX_rd),
+        .MEM_rd (MEM_rd),
+        .WB_rd (WB_rd),  
+
+        .WB_RegWrite (WB_RegWrite),
+        .EX_RegWrite (EX_RegWrite),
+        .MEM_RegWrite (MEM_RegWrite),
+
+        .EX_MemRead (EX_MemRead),
+        .MEM_MemRead (MEM_MemRead),
+        .WB_MemRead (WB_MemRead),
+
+        .PCWrite (PCWrite), .IF_ID_Stall (IF_ID_Stall), .Nop (Nop)
+    );
 
     SingleCycleController Controller(
         //OpCode input
@@ -241,31 +269,34 @@ module Datapath (
         .RegWriteSrc (ID_RegWriteSrc)
         //.instruction_out(ID_Instruction)
     );
-    
-    HazardDetectionUnit HDU(
+
+    wire [1:0] Forward_ALU_A_Sel;
+    wire [1:0] Forward_ALU_B_Sel;
+    wire [1:0] Forward_Branch_A_Sel;
+    wire [1:0] Forward_Branch_B_Sel;
+    ForwardingUnit Forwarding(
         .Clk (Clk),
         .Reset (Reset),
 
-        .IF_ID_rs (ID_rs), .IF_ID_rt (ID_rt),
-        .IF_ID_Branch (ID_Branch),
+        .ID_rs (ID_rs), .ID_rt (ID_rt),
+        
+        .EX_rt (EX_rt), .EX_rd (EX_rd), .EX_rs (EX_rs),
+        .MEM_rt (MEM_rt), .MEM_rd (MEM_rd),
+        .WB_rt (WB_rt), .WB_rd (WB_rd),
 
-        .ID_EX_rt (EX_rt),   
-        .EX_MEM_rt (MEM_rt), 
-        .MEM_WB_rt (WB_rt),
+        .EX_ALUSrc (EX_ALUSrc),
+        .MEM_ALUSrc (MEM_ALUSrc),
+        .WB_ALUSrc (WB_ALUSrc),
 
-        .ID_EX_rd (EX_rd),
-        .EX_MEM_rd (MEM_rd),
-        .MEM_WB_rd (WB_rd),  
+        .EX_MemRead (EX_MemRead),
+        .MEM_MemRead (MEM_MemRead),
+        .WB_MemRead (WB_MemRead),
 
-        .MEM_WB_RegWrite (WB_RegWrite),
-        .ID_EX_RegWrite (EX_RegWrite),
-        .EX_MEM_RegWrite (MEM_RegWrite),
+        .MEM_RegWrite (MEM_RegWrite),
+        .WB_RegWrite (WB_RegWrite),
 
-        .ID_EX_MemRead (EX_MemRead),
-        .EX_MEM_MemRead (MEM_MemRead),
-        .MEM_WB_MemRead (WB_MemRead),
-
-        .PCWrite (PCWrite), .IF_ID_Stall (IF_ID_Stall), .Nop (Nop)
+        .Forward_EX_rs (Forward_ALU_A_Sel),
+        .Forward_EX_rt (Forward_ALU_B_Sel)
     );
 
     RegisterFile Registers(
@@ -333,7 +364,7 @@ module Datapath (
     wire [31:0] EX_AndValue;
     wire [31:0] EX_sa;
     wire [3:0] EX_ALUop;
-    wire [1:0] EX_ALUsrc, EX_RegDst, EX_MemToReg, EX_RegJump;
+    wire [1:0] EX_RegDst, EX_MemToReg, EX_RegJump;
     wire EX_ALUASrc;
     wire EX_Branch, EX_MemWrite, EX_Unconditional, EX_BranchNE, EX_MemWriteSrc;
 
@@ -365,7 +396,7 @@ module Datapath (
         .instruction_out (EX_Instruction),
 
         // execution control outputs
-        .ALUSrc_out (EX_ALUsrc), .ALUop_out (EX_ALUop), .RegJump_out (EX_RegJump), .RegDst_out (EX_RegDst),
+        .ALUSrc_out (EX_ALUSrc), .ALUop_out (EX_ALUop), .RegJump_out (EX_RegJump), .RegDst_out (EX_RegDst),
 
         // memory control outputs
         .branch_out (EX_Branch), .MemRead_out (EX_MemRead), .MemWrite_out (EX_MemWrite), .Unconditional_out (EX_Unconditional),
@@ -379,30 +410,7 @@ module Datapath (
     // EX
     // ==================================================================================================================================================================================================
 
-    wire [1:0] Forward_ALU_A_Sel;
-    wire [1:0] Forward_ALU_B_Sel;
-    ForwardingUnit ForwardingEX(
-        .Clk (Clk),
-        .Reset (Reset),
-
-        .ID_EX_rs (EX_rs), .ID_EX_rt (EX_rt),
-
-        .EX_MEM_rt (MEM_rt), .EX_MEM_rd (MEM_rd),
-        .MEM_WB_rt (WB_rt), .MEM_WB_rd (WB_rd),
-
-        .EX_MEM_ALUSrc (MEM_ALUSrc),
-        .MEM_WB_ALUSrc (WB_ALUSrc),
-
-        .ID_EX_MemRead (EX_MemRead),
-        .EX_MEM_MemRead (MEM_MemRead),
-        .MEM_WB_MemRead (WB_MemRead),
-
-        .EX_MEM_RegWrite (MEM_RegWrite),
-        .MEM_WB_RegWrite (WB_RegWrite),
-
-        .Forward_rs_EX (Forward_ALU_A_Sel),
-        .Forward_rt_EX (Forward_ALU_B_Sel)
-    );
+    
     
     // ALU ------------------------------------------------
     //Mux for ALU input A
@@ -419,7 +427,7 @@ module Datapath (
     //Mux for ALU input B
      wire [31:0] muxAluSrc;
     Mux32Bit4To1 Mux_AluSrc(
-        .sel (EX_ALUsrc),
+        .sel (EX_ALUSrc),
 
         .inA (EX_readData2),
         .inB (EX_immed32),
@@ -521,7 +529,7 @@ module Datapath (
         .Branch_out (MEM_Branch), .MemRead_out (MEM_MemRead), .MemWrite_out (MEM_MemWrite), .Unconditional_out (MEM_Unconditional),
         .BranchNE_out (MEM_BranchNE), .MemWriteSrc_out (MEM_WriteSrc),
 
-        .ALUSrc_in(EX_ALUsrc), .ALUSrc_out(MEM_ALUSrc)
+        .ALUSrc_in(EX_ALUSrc), .ALUSrc_out(MEM_ALUSrc)
     );
     // MEM
     // ==================================================================================================================================================================================================
