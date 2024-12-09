@@ -5,7 +5,7 @@ module HazardDetectionUnit (
     input Reset,
 
     input [4:0] IF_ID_rs, IF_ID_rt,
-    input ,
+    input IF_ID_Branch,
 
     input [4:0] ID_EX_rt, ID_EX_rd,
     input [4:0] EX_MEM_rt, EX_MEM_rd,
@@ -27,8 +27,6 @@ module HazardDetectionUnit (
 
 reg stall;
 reg exit;
-
-reg IF_ID_Branch;
 
 reg ID_EX_rt_match;
 reg EX_MEM_rt_match;

@@ -217,6 +217,31 @@ module Datapath (
     assign addJump = ID_PC + shiftImmediate;
 
     // Hazard detection for stall logic
+
+    SingleCycleController Controller(
+        //OpCode input
+        .instruction_in (ID_Instruction),
+        .nop (Nop),
+
+        //Output Signals
+        .ALUSrc2 (ID_ALUASrc),
+        .ALUSrc (ID_ALUSrc),
+        .ALUop (ID_ALUop),
+        .JumpSrc (ID_RegJump),
+        .RegDst (ID_RegDst),
+        .Branch (ID_Branch),
+        .MemRead (ID_MemRead),
+        .MemWrite (ID_MemWrite),
+        .Unconditional (ID_Unconditional),
+        .BranchNE (ID_BranchNE),
+        .MemWriteSrc (ID_MemWriteSrc),
+        .MemtoReg (ID_MemtoReg),
+        .RegWrite (ID_RegWrite),
+        .AndValue (ID_AndValue),
+        .RegWriteSrc (ID_RegWriteSrc)
+        //.instruction_out(ID_Instruction)
+    );
+    
     HazardDetectionUnit HDU(
         .Clk (Clk),
         .Reset (Reset),
@@ -241,30 +266,6 @@ module Datapath (
         .MEM_WB_MemRead (WB_MemRead),
 
         .PCWrite (PCWrite), .IF_ID_Stall (IF_ID_Stall), .Nop (Nop)
-    );
-
-    SingleCycleController Controller(
-        //OpCode input
-        .instruction_in (ID_Instruction),
-        .nop (Nop),
-
-        //Output Signals
-        .ALUSrc2 (ID_ALUASrc),
-        .ALUSrc (ID_ALUSrc),
-        .ALUop (ID_ALUop),
-        .JumpSrc (ID_RegJump),
-        .RegDst (ID_RegDst),
-        .Branch (ID_Branch),
-        .MemRead (ID_MemRead),
-        .MemWrite (ID_MemWrite),
-        .Unconditional (ID_Unconditional),
-        .BranchNE (ID_BranchNE),
-        .MemWriteSrc (ID_MemWriteSrc),
-        .MemtoReg (ID_MemtoReg),
-        .RegWrite (ID_RegWrite),
-        .AndValue (ID_AndValue),
-        .RegWriteSrc (ID_RegWriteSrc)
-        //.instruction_out(ID_Instruction)
     );
 
     RegisterFile Registers(
