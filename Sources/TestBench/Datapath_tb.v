@@ -23,7 +23,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module TopLevelHazard_tb();
+module Datapath_tb();
 
 reg Clk;
 reg Reset;
@@ -56,7 +56,7 @@ wire EX_RegWriteSrc;
 
 wire PCsrc, IF_ID_Stall;
 
-TopLevelHazard u0(
+Datapath u0(
     .Reset(Reset),
     .Clk(Clk),
     //IF phase

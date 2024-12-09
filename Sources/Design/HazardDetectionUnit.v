@@ -5,6 +5,7 @@ module HazardDetectionUnit (
     input Reset,
 
     input [4:0] IF_ID_rs, IF_ID_rt,
+    input ,
 
     input [4:0] ID_EX_rt, ID_EX_rd,
     input [4:0] EX_MEM_rt, EX_MEM_rd,
@@ -25,6 +26,9 @@ module HazardDetectionUnit (
 );
 
 reg stall;
+reg exit;
+
+reg IF_ID_Branch;
 
 reg ID_EX_rt_match;
 reg EX_MEM_rt_match;
@@ -44,30 +48,27 @@ reg MEM_WB_dependant;
 
 always @ (*) begin
 
-    if (Reset) 
+    if (Reset) begin
         stall <= 0;
+        exit <= 0;
+    end
 
     else begin
-
-        //1 if [stage]_rt = IF_ID_rs or IF_ID_rt
-        ID_EX_rt_match  = ((ID_EX_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((ID_EX_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
-        EX_MEM_rt_match = ((EX_MEM_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((EX_MEM_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
-        MEM_WB_rt_match = ((MEM_WB_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((MEM_WB_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
 
         //1 if [stage]_rd = IF_ID_rs or IF_ID_rt
         ID_EX_rd_match  = ((ID_EX_rd == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((ID_EX_rd == IF_ID_rt) & (IF_ID_rt != 5'd0));
         EX_MEM_rd_match = ((EX_MEM_rd == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((EX_MEM_rd == IF_ID_rt) & (IF_ID_rt != 5'd0));
         MEM_WB_rd_match = ((MEM_WB_rd == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((MEM_WB_rd == IF_ID_rt) & (IF_ID_rt != 5'd0));
 
-        //1 if [stage]_MemRead or [stage]_RegWrite are enabled
-        ID_EX_trigger  = ID_EX_MemRead | ID_EX_RegWrite;
-        EX_MEM_trigger = EX_MEM_MemRead | EX_MEM_RegWrite;
-        MEM_WB_trigger = MEM_WB_MemRead | MEM_WB_RegWrite;
+        //1 if [stage]_rt = IF_ID_rs or IF_ID_rt
+        ID_EX_rt_match  = ((ID_EX_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((ID_EX_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
+        EX_MEM_rt_match = ((EX_MEM_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((EX_MEM_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
+        MEM_WB_rt_match = ((MEM_WB_rt == IF_ID_rs) & (IF_ID_rs != 5'd0)) | ((MEM_WB_rt == IF_ID_rt) & (IF_ID_rt != 5'd0));
 
         //1 if IF_ID is dependant on respective stage
-        ID_EX_dependant = (ID_EX_trigger & ID_EX_rt_match) | (ID_EX_RegWrite & ID_EX_rd_match);
-        EX_MEM_dependant = (EX_MEM_trigger & EX_MEM_rt_match) | (EX_MEM_RegWrite & EX_MEM_rd_match);
-        MEM_WB_dependant = (MEM_WB_trigger & MEM_WB_rt_match) | (MEM_WB_RegWrite & MEM_WB_rd_match);
+        ID_EX_dependant  = (ID_EX_MemRead & ID_EX_rt_match) | (ID_EX_rd_match & IF_ID_Branch);
+        EX_MEM_dependant = (EX_MEM_MemRead & EX_MEM_rt_match) | (EX_MEM_rd_match & IF_ID_Branch);
+        MEM_WB_dependant = (MEM_WB_MemRead & MEM_WB_rt_match) | (MEM_WB_rd_match & IF_ID_Branch);
 
         //1 if dependency exists
         stall = ID_EX_dependant | EX_MEM_dependant | MEM_WB_dependant;
@@ -89,4 +90,25 @@ always @ (*) begin
     end
     
 end
+
+always @ (negedge stall) begin
+    PCWrite <= 1; 
+    IF_ID_Stall <= 1;
+    ID_EX_Stall <= 1;
+    Nop <= 1;
+
+    exit <= 1;
+end
+
+always @ (posedge Clk) begin
+    if (exit) begin
+        PCWrite <= 0; 
+        IF_ID_Stall <= 0;
+        ID_EX_Stall <= 0;
+        Nop <= 0;
+
+        exit <= 0;
+    end
+end
+
 endmodule

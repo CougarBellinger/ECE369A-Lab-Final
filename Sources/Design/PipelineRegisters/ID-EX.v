@@ -31,14 +31,16 @@ module DecodeExecute(Clk, Reset, flush, ID_EXWrite, read_data_1_in, read_data_2_
                      read_data_1_out, read_data_2_out, sa_out, imm_out, rt_out, rd_out, target_out, pc_out, pcJump_out, // outputs
                      ALUSrc_out, ALUASrc_out, ALUop_out, RegJump_out, RegDst_out, // execution control outputs
                      branch_out, MemRead_out, MemWrite_out, Unconditional_out, BranchNE_out, MemWriteSrc_out,  // memory control outputs
-                     MemToReg_out, RegWrite_out, AndValue_out, RegWriteSrc_out // write back control outputs
+                     MemToReg_out, RegWrite_out, AndValue_out, RegWriteSrc_out, // write back control outputs
+
+                     rs_in, rs_out
                     ); 
 
     input Clk, Reset, ID_EXWrite, flush;
 
     // inputs
     input [31:0] read_data_1_in, read_data_2_in, sa_in, imm_in, target_in, pc_in, pcJump_in, instruction_in;
-    input [4:0] rt_in, rd_in; 
+    input [4:0] rt_in, rd_in, rs_in; 
    
     // execution control inputs
     input [1:0] ALUSrc_in, RegDst_in, RegJump_in;
@@ -55,7 +57,7 @@ module DecodeExecute(Clk, Reset, flush, ID_EXWrite, read_data_1_in, read_data_2_
 
     //outputs
     output reg [31:0] read_data_1_out, read_data_2_out, sa_out, imm_out, target_out, pc_out, pcJump_out, instruction_out;
-    output reg [4:0] rt_out, rd_out;
+    output reg [4:0] rt_out, rd_out, rs_out;
 
     // execution control outputs
     output reg [1:0] ALUSrc_out, RegDst_out, RegJump_out;
@@ -80,6 +82,7 @@ module DecodeExecute(Clk, Reset, flush, ID_EXWrite, read_data_1_in, read_data_2_
         imm_out <= 0;
         rt_out <= 0;
         rd_out <= 0;
+        rs_out <= 0;
         target_out <= 0;
         pc_out <= 0;
         pcJump_out <= 0;
@@ -114,6 +117,7 @@ module DecodeExecute(Clk, Reset, flush, ID_EXWrite, read_data_1_in, read_data_2_
         imm_out <= imm_in;
         rt_out <= rt_in;
         rd_out <= rd_in;
+        rs_out <= rs_in;
         target_out <= target_in;
         pc_out <= pc_in;
         pcJump_out <= pcJump_in;

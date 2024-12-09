@@ -21,7 +21,8 @@
 
 
 module MemoryWriteback(Clk, Reset, MemtoReg_in, RegWrite_in, AndValue_in, RegWriteSrc_in, pc_in, MemData_in, AluResult_in, WriteRegister_in, rt_in, rs_in, MemRead_in, instruction_in,
-                            MemtoReg_out, RegWrite_out, AndValue_out, RegWriteSrc_out, pc_out, MemData_out, AluResult_out, WriteRegister_out, rt_out, rs_out, MemRead_out, instruction_out);
+                            MemtoReg_out, RegWrite_out, AndValue_out, RegWriteSrc_out, pc_out, MemData_out, AluResult_out, WriteRegister_out, rt_out, rs_out, MemRead_out, instruction_out,
+                            ALUSrc_in, ALUSrc_out);
     //clk
     input Clk,Reset;
 
@@ -41,6 +42,9 @@ module MemoryWriteback(Clk, Reset, MemtoReg_in, RegWrite_in, AndValue_in, RegWri
     output reg [1:0] MemtoReg_out; //2 bit control signals
     output reg RegWrite_out, RegWriteSrc_out, MemRead_out; //1 bit control signals
 
+    input [1:0] ALUSrc_in;
+    output reg [1:0] ALUSrc_out;
+
     always@(posedge Clk) begin
         if(Reset) begin
             pc_out <= 0;
@@ -55,6 +59,7 @@ module MemoryWriteback(Clk, Reset, MemtoReg_in, RegWrite_in, AndValue_in, RegWri
             RegWriteSrc_out <= 0;
             MemRead_out <= 0;
             instruction_out <= 0;
+            ALUSrc_out <= 0;
         end
         else begin
             //datapath information
@@ -72,6 +77,8 @@ module MemoryWriteback(Clk, Reset, MemtoReg_in, RegWrite_in, AndValue_in, RegWri
             RegWrite_out <= RegWrite_in;
             RegWriteSrc_out <= RegWriteSrc_in;
             MemRead_out <= MemRead_in;
+
+            ALUSrc_out <= ALUSrc_in;
         end
         end
         

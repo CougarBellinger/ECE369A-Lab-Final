@@ -51,6 +51,7 @@
 module RegisterFile(
 
 	input Clk,
+	input Reset,
 
 	input RegWrite,
 
@@ -83,18 +84,16 @@ module RegisterFile(
 
 	reg [31:0] RegFile [0:31];
 
-	initial begin
+	always @ (*) begin
 
-		RegFile[5'd0] <= 0;
-		RegFile[5'd29] <= 32'd131067; //initialize $sp to last element of data memory (data mem size - 4)
+		if(Reset) begin
+			RegFile[5'd0] <= 0;
+			RegFile[5'd29] <= 32'd131067; //initialize $sp to last element of data memory (data mem size - 4)
 
-		v0_data <= 0;
-		v1_data <= 0;
+			v0_data <= 0;
+			v1_data <= 0;
+		end
 		
-
-		// for(i = 8; i < 26; i = i + 1)begin
-		// 	RegFile [i] <= 0;
-		// end
 	end
 
 	//Write on posedge of Clk

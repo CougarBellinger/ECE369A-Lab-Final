@@ -58,7 +58,7 @@ module ExecutionMemory(Clk, Reset, pc_in, Zero_in, pc_in_2, ALUResult_in, read_d
     output reg Branch_out, MemRead_out, MemWrite_out, Unconditional_out, BranchNE_out, MemWriteSrc_out;
 
     input [1:0] ALUSrc_in;
-    output [1:0] ALUSrc_out;
+    output reg [1:0] ALUSrc_out;
 
     always @ (posedge Clk) begin
         if(Reset) begin
